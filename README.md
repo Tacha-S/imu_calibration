@@ -42,3 +42,25 @@ If `visualize==true`, you will get the result shown in the figure below after th
 ![calibration_result](.readme/magnetic_calibration_result.png)
 
 The results output to log and output_file can be used as correction parameters for the IMU driver node or for [imu_filter_madgwick](http://wiki.ros.org/imu_filter_madgwick).
+
+## IMU analysis
+
+Collect data from IMUs that are stationary and analyze Allan variance.
+
+### Parameters
+
+- `duration`: Duration of correction sensor data (default: `60.0[s]`)
+- `rate`: Sensing rate (default: `100[Hz]`)
+
+### Inputs
+
+- `data` ([sensor_msgs/Imu](http://docs.ros.org/api/sensor_msgs/html/msg/Imu.html))  
+    Sensor value of the IMU
+
+### Example
+
+```bash
+roslaunch imu_calibration analyze_imu.launch
+```
+
+![analyze_result](.readme/analyze_result.png)
