@@ -13,9 +13,6 @@ jobs:
     if: ${{ !failure() }}
     name: Build
     uses: Tacha-S/.github/.github/workflows/ros-build.yml@main
-    secrets:
-      ssh_key: ${{ secrets.GISEN_ROBO_GIT }}
-      known_hosts: ${{ secrets.KNOWN_HOSTS }}
   release-drafter:
     name: Release drafter
     uses: Tacha-S/.github/.github/workflows/release-drafter.yml@main
