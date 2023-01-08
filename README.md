@@ -23,3 +23,16 @@ In magnetic calibration, the robot is rotated and the bias is estimated from the
 
 - `cmd_vel` ([geometry_msgs/Twist](http://docs.ros.org/api/geometry_msgs/html/msg/Twist.html))  
     Command to rotate the robot
+
+### Example
+
+```bash
+roslaunch imu_calibration magnetic_calibration.launch
+```
+
+Please remap topics if necessary.
+If `visualize==true`, you will get the result shown in the figure below after the calibration is completed.
+
+![calibration_result](.readme/magnetic_calibration_result.png)
+
+The results output to log and output_file can be used as correction parameters for the IMU driver node or for [imu_filter_madgwick](http://wiki.ros.org/imu_filter_madgwick).
