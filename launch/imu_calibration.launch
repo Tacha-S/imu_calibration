@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- -*- mode: XML -*- -->
+<launch>
+  <arg name="duration" default="60.0"/>
+  <arg name="base_frame" default="base_link"/>
+  <arg name="result_file" default="$(find imu_calibration)/launch/calibrated_tf.launch"/>
+
+  <node name="imu_calibrator" pkg="imu_calibration" type="calibrate_imu.py" output="screen" required="true">
+    <param name="duration" value="$(arg duration)"/>
+    <param name="base_frame" value="$(arg base_frame)"/>
+    <param name="result_file" value="$(arg result_file)"/>
+  </node>
+</launch>
