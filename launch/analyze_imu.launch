@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- -*- mode: XML -*- -->
+<launch>
+  <arg name="duration" default="60.0"/>
+  <arg name="rate" default="100"/>
+
+  <node name="imu_analyzer" pkg="imu_calibration" type="analyze_imu.py" output="screen" required="true">
+    <param name="duration" value="$(arg duration)"/>
+    <param name="rate" value="$(arg rate)"/>
+  </node>
+
+</launch>
