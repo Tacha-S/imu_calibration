@@ -5,7 +5,7 @@ find_package(catkin REQUIRED)
 
 catkin_package()
 
-add_custom_target(${PROJECT_NAME}_install_python_package ALL COMMAND python -m pip install plotly)
+add_custom_target(${PROJECT_NAME}_install_python_package ALL COMMAND python3 -m pip install AllanTools plotly)
 
 install(
   PROGRAMS
