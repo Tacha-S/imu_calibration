@@ -7,6 +7,12 @@ The ROS package can calibrate a IMU sensor.
 Bias correction is required when measuring geomagnetic field with magnetic sensors.
 In magnetic calibration, the robot is rotated and the bias is estimated from the magnetic field data.
 
+In this calibration, the following minimization problem is solved under the assumption that the collected magnetic field data form a circle on the same plane.
+
+$$ \text{Minimize}: \sum_i ((x_i-b_1)^2 + (y_i-b_2)^2 + (z_i-b_3)^2 - r^2)^2 + (a_1(x_i-b_1) + a_2(y_i-b_2)+a_3(z_i-b_3))^2 $$
+
+where $x_i,y_i,z_i$ is the measurement data, $r$ is the radius of the circle, $\bm{a}$ is the normal vector of the plane and $\bm{b}$ is the bias.
+
 ### Parameters
 
 - `duration`: Duration of correction sensor data (default: `60.0[s]`)
