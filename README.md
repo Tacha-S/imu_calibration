@@ -45,7 +45,7 @@ The results output to log and output_file can be used as correction parameters f
 
 ## IMU analysis
 
-Collect data from IMUs that are stationary and analyze Allan variance.
+Collect data from IMU that is stationary and analyze Allan variance.
 
 ### Parameters
 
@@ -64,3 +64,33 @@ roslaunch imu_calibration analyze_imu.launch
 ```
 
 ![analyze_result](.readme/analyze_result.png)
+
+## IMU calibration
+
+Collect data from IMU that is stationary and calibrate the accelerometer tilt.
+
+### Parameters
+
+- `duration`: Duration of correction sensor data (default: `60.0[s]`)
+- `base_frame`: Parent frame name (default: `base_link`)
+- `result_file`: Output file name (default: `"path/to/imu_calibration/launch/calibrated_tf.launch"`)
+
+### Inputs
+
+- `data` ([sensor_msgs/Imu](http://docs.ros.org/api/sensor_msgs/html/msg/Imu.html))  
+    Sensor value of the IMU
+
+### Example
+
+```bash
+roslaunch imu_calibration imu_calibration.launch
+```
+
+The args in calibrated_imu_tf node will be updated.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <node name="calibrated_imu_tf" pkg="tf2_ros" type="static_transform_publisher" args="0.0 0.0 0.365 -0.021576252090569317 0.03782048416212938 0.0 0.9990515884194701 base_link imu_link"/>
+</launch>
+```
