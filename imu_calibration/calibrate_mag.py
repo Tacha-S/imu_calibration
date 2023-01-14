@@ -2,40 +2,51 @@
 # -*- coding:utf-8 -*-
 
 import pathlib
+import sys
 
 import numpy as np
 import plotly.graph_objects as go
-import rospkg
-import rospy
+import rclpy
 import yaml
+from ament_index_python.packages import get_package_share_directory
 from geometry_msgs.msg import Twist
+from rclpy.duration import Duration
+from rclpy.executors import ExternalShutdownException
+from rclpy.node import Node
 from sensor_msgs.msg import MagneticField
 
 
-class CalibrateMag(object):
+class CalibrateMag(Node):
     def __init__(self):
+        super().__init__('calibrate_mag')
         self.data = []
-        self.duration = rospy.Duration(rospy.get_param('~duration', 60.0))
-        self.velocity = rospy.get_param('~velocity', 0.2)
-        self.output = rospy.get_param('~output_file',
-                                      rospkg.RosPack().get_path('imu_calibration') + '/config/mag.yaml')
-        self.visualize = rospy.get_param('~visualize', False)
-        self.pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
-        self.rate = rospy.Rate(20)
-        self.sub = rospy.Subscriber('mag', MagneticField, self.cb)
+        self.declare_parameters(
+            namespace='',
+            parameters=[('duration', 60),
+                        ('velocity', 0.2),
+                        ('output_file', get_package_share_directory('imu_calibration') + '/config/mag.yaml'),
+                        ('visualize', False)])
+        self.duration = Duration(seconds=self.get_parameter('duration').value)
+        self.get_logger().info(f'duration: {self.duration}')
+        self.velocity = self.get_parameter('velocity').value
+        self.output = self.get_parameter('output_file').value
+        self.visualize = self.get_parameter('visualize').value
+        self.pub = self.create_publisher(Twist, 'cmd_vel', 10)
+        self.rate = self.create_rate(20)
+        self.sub = self.create_subscription(MagneticField, 'mag', self.cb, 10)
 
     def cb(self, msg):
         self.data.append([msg.magnetic_field.x, msg.magnetic_field.y, msg.magnetic_field.z])
 
     def run(self):
-        start = rospy.Time.now()
+        start = self.get_clock().now()
         twist = Twist()
         twist.angular.z = self.velocity
-        while not rospy.is_shutdown() and rospy.Time.now() - start < self.duration:
+        while rclpy.ok() and self.get_clock().now() - start < self.duration:
             self.pub.publish(twist)
             self.rate.sleep()
 
-        self.sub.unregister()
+        self.sub.destroy()
         data = np.array(self.data)
 
         a = np.vstack([data[:, 0], data[:, 1], np.ones(len(data))]).T
@@ -51,7 +62,7 @@ class CalibrateMag(object):
         b = np.concatenate([b1, b2], 0)
         result2 = np.linalg.lstsq(a, b, rcond=None)
         bias = result2[0]
-        rospy.loginfo(f'magnetic bias: {bias[:3]}')
+        self.get_logger().info(f'magnetic bias: {bias[:3]}')
 
         if not pathlib.Path(self.output).exists():
             with open(self.output, 'w') as f:
@@ -93,8 +104,22 @@ class CalibrateMag(object):
                                                                      mean[2] + max_range / 2 * 1.2])))
             fig.show()
 
+        raise KeyboardInterrupt
+
+
+def main():
+    rclpy.init()
+    try:
+        node = CalibrateMag()
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    except ExternalShutdownException:
+        sys.exit(1)
+    finally:
+        rclpy.try_shutdown()
+        node.destroy_node()
+
 
 if __name__ == '__main__':
-    rospy.init_node('calibrator')
-    node = CalibrateMag()
-    node.run()
+    main()

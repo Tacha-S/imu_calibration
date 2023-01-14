@@ -1,22 +1,32 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
+import sys
+
 import allantools
 import numpy as np
 import plotly.graph_objects as go
-import rospy
+import rclpy
 from plotly.subplots import make_subplots
+from rclpy.duration import Duration
+from rclpy.executors import ExternalShutdownException
+from rclpy.node import Node
 from sensor_msgs.msg import Imu
 
 
-class AnalyzeIMU(object):
+class AnalyzeIMU(Node):
     def __init__(self):
+        super().__init__('analyze_imu')
         self.acc = []
         self.vel = []
-        self.duration = rospy.Duration(rospy.get_param('~duration', 60.0))
-        self.rate = rospy.get_param('~rate', 100)
+
+        self.declare_parameters(namespace='',
+                                parameters=[('duration', 60),
+                                            ('rate', 100)])
+        self.duration = Duration(seconds=self.get_parameter('duration').value)
+        self.rate = self.get_parameter('rate').value
         self.start_t = None
-        self.sub = rospy.Subscriber('data', Imu, self.cb)
+        self.sub = self.create_subscription(Imu, 'data', self.cb, 10)
 
     def cb(self, msg):
         if self.start_t is None:
@@ -26,7 +36,7 @@ class AnalyzeIMU(object):
             self.vel.append([msg.angular_velocity.x, msg.angular_velocity.y, msg.angular_velocity.z])
             return
 
-        self.sub.unregister()
+        self.sub.destroy()
         acc = np.array(self.acc)
         vel = np.array(self.vel)
         fig = make_subplots(rows=2,
@@ -70,10 +80,22 @@ class AnalyzeIMU(object):
         fig.update_layout(title_text="Allan Deviation", showlegend=False, template='seaborn')
         fig.show()
 
-        rospy.signal_shutdown('Done')
+        raise KeyboardInterrupt
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    try:
+        node = AnalyzeIMU()
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    except ExternalShutdownException:
+        sys.exit(1)
+    finally:
+        rclpy.try_shutdown()
+        node.destroy_node()
 
 
 if __name__ == '__main__':
-    rospy.init_node('calibrator')
-    _ = AnalyzeIMU()
-    rospy.spin()
+    main()
